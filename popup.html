@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Clear Cache on Reload</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">🧹</div>
+      <div>
+        <h1>Clear Cache</h1>
+        <p class="subtitle">on Reload (Dev)</p>
+      </div>
+    </div>
+    <label class="switch" title="Activar/Desactivar">
+      <input type="checkbox" id="enabled" />
+      <span class="slider"></span>
+    </label>
+  </header>
+
+  <section class="status" id="status">
+    <span class="dot"></span>
+    <span class="status-text">Cargando…</span>
+  </section>
+
+  <section class="block">
+    <h2>Qué borrar al recargar</h2>
+    <div class="options">
+      <label class="option">
+        <input type="checkbox" id="opt-cache" />
+        <span>Caché</span>
+      </label>
+      <label class="option">
+        <input type="checkbox" id="opt-cookies" />
+        <span>Cookies</span>
+      </label>
+      <label class="option">
+        <input type="checkbox" id="opt-localStorage" />
+        <span>localStorage</span>
+      </label>
+      <label class="option">
+        <input type="checkbox" id="opt-sessionStorage" />
+        <span>sessionStorage</span>
+      </label>
+      <label class="option">
+        <input type="checkbox" id="opt-indexedDB" />
+        <span>IndexedDB</span>
+      </label>
+      <label class="option">
+        <input type="checkbox" id="opt-serviceWorkers" />
+        <span>Service Workers</span>
+      </label>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Dominios donde actuar</h2>
+    <p class="hint">Uno por línea. Acepta patrones tipo <code>localhost</code>, <code>127.0.0.1</code>, <code>*.local</code>, <code>dev.miweb.com</code>.</p>
+    <textarea id="domains" rows="4" spellcheck="false"></textarea>
+  </section>
+
+  <section class="block actions">
+    <button id="clear-now" class="btn btn-primary">🧹 Borrar ahora</button>
+    <button id="save" class="btn btn-secondary">Guardar</button>
+  </section>
+
+  <div id="toast" class="toast"></div>
+
+  <footer class="footer">
+    <span>v1.0.0</span>
+    <span class="dev-tag">DEV MODE</span>
+  </footer>
+</body>
+<script src="popup.js"></script>
+</html>
