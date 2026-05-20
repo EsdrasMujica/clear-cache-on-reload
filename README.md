@@ -44,7 +44,17 @@
 4. Pulsa **Cargar extensión sin empaquetar** y selecciona la carpeta del repo.
 5. ¡Listo! El icono aparecerá en la barra de extensiones.
 
-### Opción 2 — Chrome Web Store
+### Opción 2 — Instalar desde CRX (archivo compilado)
+
+1. Descarga o genera el archivo `.crx` (ver [RELEASE](https://github.com/EsdrasMujica/clear-cache-on-reload/releases)).
+2. Abre `chrome://extensions/` en tu navegador.
+3. Arrastra y suelta el archivo `.crx` en la página.
+4. Confirma la instalación cuando se te pida.
+5. ¡Listo! La extensión se instalará automáticamente.
+
+> **Nota**: Este método es ideal para distribución manual o testing de versiones compiladas.
+
+### Opción 3 — Chrome Web Store
 
 _Próximamente._
 
