@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Clear Cache on Reload (Dev)",
   "version": "1.0.0",
-  "description": "Borra automáticamente caché, cookies y storage de localhost (y dominios configurados) cada vez que recargas la página. Ideal para desarrollo.",
+  "description": "Borra automáticamente caché, cookies y storage de dominios configurados cada vez que recargas la página. Ideal para desarrollo! :)",
   "permissions": [
     "storage",
     "tabs",
