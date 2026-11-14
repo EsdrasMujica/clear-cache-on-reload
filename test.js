@@ -1,0 +1,17 @@
+const assert = require("assert");
+const { decide, parseList, subdomainTip, matchingRule } = require("./ccor-core.js");
+const A = { enabled: true, mode: "allow", allowList: "localhost\n*.local\nhttp://dev.miweb.com:3000/x # nota\n*.app.dev", blockList: "api.app.dev" };
+const B = { ...A, mode: "block" };
+const t = (cfg, h) => decide(h, cfg).act;
+assert.deepStrictEqual(parseList(A.allowList), ["localhost", "*.local", "dev.miweb.com", "*.app.dev"]);
+assert(t(A, "localhost")); assert(t(A, "x.local")); assert(t(A, "dev.miweb.com"));
+assert(!t(A, "miweb.com")); assert(!t(A, "evillocalhost"));
+assert(t(A, "app.dev")); assert(t(A, "a.b.app.dev"));
+assert(!t(A, "api.app.dev"), "blocklist gana");
+assert(t(B, "example.com")); assert(!t(B, "api.app.dev"));
+assert(t(B, "accounts.google.com"), "sin exclusiones fijas");
+assert(!t({ ...A, enabled: false }, "localhost"));
+assert.strictEqual(decide("www.miweb.com", { ...B, blockList: "*.miweb.com" }).rule, "*.miweb.com");
+assert(t({ ...B, blockList: "miweb.com" }, "www.miweb.com"), "miweb.com solo cubre ese host");
+assert.strictEqual(subdomainTip("www.miweb.com", ["miweb.com"]), "miweb.com");
+console.log("OK 15 aserciones");

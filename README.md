@@ -1,25 +1,23 @@
-# 🧹 Clear Cache on Reload
+# 🧹 CCoR - Clear Cache on Reload
 
-> Extensión de Chrome / Edge / Brave que **borra automáticamente la caché del sitio actual** cada vez que recargas la página. Ideal para desarrollo web, pruebas de despliegues y depuración de assets cacheados.
+> Extensión de Chrome (Manifest V3) que **borra la caché y, si lo eliges, los datos del sitio actual** cuando recargas la página, solo en los sitios que tú decidas. Ideal para desarrollo web, pruebas de despliegues y depuración de assets cacheados.
 
 ![Manifest](https://img.shields.io/badge/manifest-v3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.0.0-orange)
-![Chrome](https://img.shields.io/badge/Chrome-supported-success)
-![Edge](https://img.shields.io/badge/Edge-supported-success)
-![Brave](https://img.shields.io/badge/Brave-supported-success)
+![Version](https://img.shields.io/badge/version-2.0.0-orange)
+![Probado en](https://img.shields.io/badge/probado%20en-Chrome%20156-success)
 
 ---
 
 ## ✨ Características
 
-- 🔄 **Limpieza automática** de caché al recargar la pestaña activa.
-- 🎯 **Por sitio (origen)**: solo borra los datos del dominio en el que estás, no toca el resto.
-- 🎛️ **Activar / desactivar** desde el popup con un toggle.
-- 🧠 **Recuerda tu preferencia** entre sesiones (`chrome.storage.sync`).
-- ⚡ **Manifest V3** (service worker, sin código remoto).
-- 🪶 **Ligera**: ~18 KB empaquetada, cero dependencias externas.
-- 🔒 **Privacidad total**: no envía datos a ningún servidor.
+- 🔄 **Al recargar** (detecta recargas reales: F5, Ctrl+R, Ctrl+Shift+R) o **en cada navegación**, a elegir.
+- ✅ **Lista permitida** y ⛔ **lista bloqueada**: modo "solo permitidos" o "todos menos bloqueados". La lista bloqueada siempre gana.
+- 🛡️ Botón opcional que añade sitios sensibles sugeridos (accounts.google.com, *.paypal.com) a tu lista bloqueada. Nada va bloqueado por defecto.
+- 🧩 Patrones `*.web.com` (subdominios y dominio base), URLs completas y comentarios con `#`.
+- 🎛️ **Qué borrar**: caché, cookies, localStorage, sessionStorage, IndexedDB y Service Workers.
+- ⚡ Botones "Permitir / Bloquear este sitio", "Borrar ahora", insignia ON y atajo **Alt+Shift+C**.
+- 🔒 **Privacidad total**: sin servidores, sin analítica, sin código remoto. Ajustes en `chrome.storage.sync`, contador en `chrome.storage.local`.
 
 ---
 
@@ -53,11 +51,18 @@ _Próximamente._
 ## 🖱️ Uso
 
 1. Haz clic en el icono de la extensión.
-2. Activa el toggle **"Limpiar caché al recargar"**.
-3. Recarga cualquier página (`F5` / `Ctrl+R`).
-4. La caché de ese sitio se borra **antes** de que la página vuelva a cargarse.
+2. Activa el interruptor de arriba y elige el modo: **Solo permitidos** o **Todos menos bloqueados**.
+3. Añade sitios con los botones del popup o escribiéndolos en las listas.
+4. Elige **Cuándo limpiar**: *Al recargar* (F5, Ctrl+R, Ctrl+Shift+R) o *En cada navegación*.
+5. Recarga la página: se borran los datos elegidos de ese sitio.
 
-Cuando la opción está activa, verás un punto verde en el popup. Si está desactivada, la extensión no toca nada.
+Si está desactivada o el sitio no entra en las listas, la extensión no toca nada. El popup te dice qué pasará con la pestaña actual.
+
+> **Alcance.** Según la documentación de `chrome.browsingData`, `origins` aplica a caché, storage y cookies, pero las cookies se borran de todo el dominio registrable. Por eso CCoR borra las cookies aparte: solo las que el navegador enviaría a esa URL, incluidas las compartidas con el dominio padre (`Domain=...`), que pueden cerrar sesión en otros subdominios. Las cookies host-only de subdominios hermanos no se tocan. Caché, localStorage, IndexedDB, CacheStorage y Service Workers se borran por origen y afectan a todas las pestañas de ese origen.
+>
+> **Modo "al recargar".** Chrome solo informa del tipo de navegación (`transitionType: "reload"`) en `webNavigation.onCommitted`, cuando la página ya empezó a cargar. CCoR borra entonces y recarga la pestaña una vez más (sin caché). No detecta `location.reload()` hecho por la página (Chrome lo marca como `link`) y no actúa si la página se cargó con POST (para no repetir el envío del formulario). Para no confundir la recarga propia con un F5 real, CCoR deja una marca de 5 s por pestaña; se retira al confirmarse la recarga, si la carga falla (`onErrorOccurred`) o si se cierra la pestaña. Límite residual: un F5 en esos 5 s inmediatos tras una recarga propia que aún no se haya confirmado no se limpia. Si cargar la URL por GET tiene efectos, se pedirá dos veces. Navegar a otra URL, enlaces o formularios a la misma URL, escribir la URL y Atrás/Adelante no cuentan como recarga.
+>
+> **Pruebas realizadas:** `node test.js` (lógica de listas) y una batería automática en Chrome 156 sin interfaz (datos reales de caché, cookies, localStorage, IndexedDB, CacheStorage y Service Workers; POST, redirecciones, meta refresh, doble F5 y 40 repeticiones del aislamiento entre orígenes). **Sin verificar:** prueba manual con la interfaz real de Chrome, el atajo Alt+Shift+C y la insignia ON, Edge, Brave, Firefox y otras versiones de Chrome.
 
 ---
 
@@ -65,11 +70,13 @@ Cuando la opción está activa, verás un punto verde en el popup. Si está desa
 
 | Permiso | Por qué se usa |
 |---|---|
-| `browsingData` | Para borrar la caché del sitio actual. |
-| `tabs` | Para detectar la pestaña activa y su URL. |
-| `webNavigation` | Para interceptar el evento de recarga antes de que el navegador pida los recursos. |
-| `storage` | Para recordar si tienes la opción activa o no. |
-| `host_permissions: <all_urls>` | Necesario para que `browsingData` pueda limpiar por origen en cualquier sitio. |
+| `browsingData` | Para borrar caché, localStorage, IndexedDB y Service Workers del sitio. |
+| `cookies` | Para borrar las cookies que se envían al sitio. |
+| `webNavigation` | Para detectar la navegación o la recarga (`transitionType`). |
+| `webRequest` | Solo observa el método (GET/POST) de la petición principal, para no repetir un POST. No bloquea ni modifica nada. |
+| `scripting` | Para vaciar localStorage y sessionStorage de la pestaña. |
+| `storage` | Para guardar tus ajustes y listas. |
+| `host_permissions: <all_urls>` | Para poder actuar en cualquier sitio que añadas a tus listas. |
 
 > No se recopila, almacena ni envía ningún dato fuera de tu navegador.
 
@@ -80,14 +87,14 @@ Cuando la opción está activa, verás un punto verde en el popup. Si está desa
 ```
 clear-cache-on-reload/
 ├── manifest.json          # Configuración MV3
-├── background.js          # Service worker (escucha recargas y borra caché)
+├── background.js          # Service worker (escucha recargas y borra datos)
+├── ccor-core.js           # Listas, patrones y decisión (compartido y testeado)
+├── test.js                # Tests de la lógica: node test.js
 ├── popup.html             # UI del popup
 ├── popup.css              # Estilos del popup
-├── popup.js               # Lógica del toggle
-├── icons/
-│   ├── icon16.png
-│   ├── icon48.png
-│   └── icon128.png
+├── popup.js               # Lógica del popup
+├── icons/                 # ccor.svg + icon16/48/128.png
+├── docs/screenshot.png
 └── README.md
 ```
 
@@ -108,11 +115,7 @@ clear-cache-on-reload/
 ### Empaquetar para distribución
 
 ```bash
-# ZIP (para Chrome Web Store)
-zip -r clear-cache-on-reload-v1.0.0.zip . -x "*.DS_Store" "*.git*"
-
-# CRX (firmado, para distribución manual)
-google-chrome --pack-extension=./extension-clear-cache-dev
+zip -r clear-cache-on-reload-v2.0.0.zip manifest.json background.js ccor-core.js popup.html popup.css popup.js icons
 ```
 
 ---
@@ -120,24 +123,24 @@ google-chrome --pack-extension=./extension-clear-cache-dev
 ## ❓ FAQ
 
 **¿Borra mis cookies o mi historial?**
-No. Solo limpia la **caché** del sitio activo. Cookies, contraseñas, historial y localStorage **no se tocan**.
+Por defecto solo borra la **caché** del sitio. Cookies, localStorage, sessionStorage, IndexedDB y Service Workers solo se borran si los marcas en "Qué borrar"; activar Cookies pide confirmación. El historial y las contraseñas guardadas no se tocan. Las cookies compartidas con el dominio padre pueden cerrar sesión en otros subdominios.
 
 **¿Funciona en Firefox?**
-No por ahora. Manifest V3 en Firefox aún tiene diferencias con `browsingData`. PRs bienvenidas.
+No verificado. Solo se ha probado en Chrome 156.
 
 **¿Ralentiza la navegación?**
-No. La limpieza solo se ejecuta cuando detecta una recarga, y solo del origen actual.
+La limpieza solo se ejecuta en los sitios elegidos. En modo "Al recargar" hay una recarga extra de la página.
 
 **¿Puedo excluir ciertos sitios?**
-Aún no. Está en el roadmap.
+Sí: usa la lista bloqueada o el modo "todos menos bloqueados".
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Lista blanca / lista negra de dominios.
-- [ ] Modo "borrar también cookies y storage" (opcional).
-- [ ] Atajo de teclado configurable.
+- [x] Lista permitida / lista bloqueada de dominios.
+- [x] Borrar también cookies y storage (opcional).
+- [x] Atajo de teclado (Alt+Shift+C, cambiable en chrome://extensions/shortcuts).
 - [ ] Soporte para Firefox.
 - [ ] Traducción a inglés y otros idiomas.
 

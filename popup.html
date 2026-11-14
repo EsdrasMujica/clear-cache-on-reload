@@ -2,20 +2,20 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Clear Cache on Reload</title>
+  <title>CCoR - Clear Cache on Reload</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
   <header class="header">
     <div class="logo">
-      <div class="logo-icon">🧹</div>
+      <div class="logo-icon"><svg viewBox="30 30 68 68" width="30" height="30" fill="none"><g stroke="#fff" stroke-width="9" stroke-linecap="round"><path d="M90 52A30 30 0 0 0 40 46"/><path d="M38 76A30 30 0 0 0 88 82"/></g><path d="M94 34v22H72z" fill="#fff"/><path d="M34 94V72h22z" fill="#fff"/></svg></div>
       <div>
-        <h1>Clear Cache</h1>
-        <p class="subtitle">on Reload (Dev)</p>
+        <h1>CCoR</h1>
+        <p class="subtitle">Clear Cache on Reload</p>
       </div>
     </div>
-    <label class="switch" title="Activar/Desactivar">
-      <input type="checkbox" id="enabled" />
+    <label class="switch" title="Activar/Desactivar (Alt+Shift+C)">
+      <input type="checkbox" id="enabled" role="switch" aria-label="CCoR activado" />
       <span class="slider"></span>
     </label>
   </header>
@@ -24,54 +24,68 @@
     <span class="dot"></span>
     <span class="status-text">Cargando…</span>
   </section>
+  <p class="hint site-hint" id="site-hint"></p>
 
   <section class="block">
-    <h2>Qué borrar al recargar</h2>
-    <div class="options">
-      <label class="option">
-        <input type="checkbox" id="opt-cache" />
-        <span>Caché</span>
-      </label>
-      <label class="option">
-        <input type="checkbox" id="opt-cookies" />
-        <span>Cookies</span>
-      </label>
-      <label class="option">
-        <input type="checkbox" id="opt-localStorage" />
-        <span>localStorage</span>
-      </label>
-      <label class="option">
-        <input type="checkbox" id="opt-sessionStorage" />
-        <span>sessionStorage</span>
-      </label>
-      <label class="option">
-        <input type="checkbox" id="opt-indexedDB" />
-        <span>IndexedDB</span>
-      </label>
-      <label class="option">
-        <input type="checkbox" id="opt-serviceWorkers" />
-        <span>Service Workers</span>
-      </label>
+    <div class="segmented" id="mode" title="Dónde actuar">
+      <button data-mode="allow">Solo permitidos</button>
+      <button data-mode="block">Todos menos bloqueados</button>
     </div>
   </section>
 
   <section class="block">
-    <h2>Dominios donde actuar</h2>
-    <p class="hint">Uno por línea. Acepta patrones tipo <code>localhost</code>, <code>127.0.0.1</code>, <code>*.local</code>, <code>dev.miweb.com</code>.</p>
-    <textarea id="domains" rows="4" spellcheck="false"></textarea>
+    <div class="segmented tabs" id="lists">
+      <button data-list="allow">Lista permitida</button>
+      <button data-list="block">Lista bloqueada (gana)</button>
+    </div>
+    <textarea id="allowList" rows="2" spellcheck="false" placeholder="localhost&#10;*.miweb.dev"></textarea>
+    <textarea id="blockList" rows="2" spellcheck="false" placeholder="miweb.com&#10;# comentario"></textarea>
+    <div class="actions mini">
+      <button id="add-allow" class="btn btn-secondary">Permitir este sitio</button>
+      <button id="add-block" class="btn btn-secondary">Bloquear este sitio</button>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Cuándo limpiar</h2>
+    <div class="segmented" id="trigger">
+      <button data-trigger="reload">Al recargar</button>
+      <button data-trigger="navigation">En cada navegación</button>
+    </div>
+    <p class="hint" id="trigger-hint"></p>
+  </section>
+
+  <section class="block">
+    <h2>Qué borrar</h2>
+    <div class="options">
+      <label class="option"><input type="checkbox" id="opt-cache" /><span>Caché</span></label>
+      <label class="option"><input type="checkbox" id="opt-cookies" /><span>Cookies</span></label>
+      <label class="option"><input type="checkbox" id="opt-localStorage" /><span>localStorage</span></label>
+      <label class="option"><input type="checkbox" id="opt-sessionStorage" /><span>sessionStorage</span></label>
+      <label class="option"><input type="checkbox" id="opt-indexedDB" /><span>IndexedDB</span></label>
+      <label class="option"><input type="checkbox" id="opt-serviceWorkers" /><span>Service Workers</span></label>
+    </div>
+    <p class="warn">Cookies: también las compartidas con el dominio padre (pueden cerrar sesión en otros subdominios). Caché y storage: afectan a todas las pestañas del sitio.</p>
   </section>
 
   <section class="block actions">
-    <button id="clear-now" class="btn btn-primary">🧹 Borrar ahora</button>
+    <button id="clear-now" class="btn btn-primary">Borrar ahora</button>
     <button id="save" class="btn btn-secondary">Guardar</button>
   </section>
 
+  <details class="notes">
+    <summary><span>Alcance y límites</span><span id="stats">v2.0.0</span></summary>
+    <p>Listas: <code>web.com</code> solo ese host; <code>*.web.com</code> sus subdominios y <code>web.com</code>.</p>
+    <p>Caché y storage: solo el origen de la página (todas sus pestañas). Cookies: las que el navegador envía a ese sitio, incluidas las compartidas con el dominio padre (<code>Domain=</code>), que pueden cerrar sesión en otros subdominios.</p>
+    <p>Al recargar: Chrome indica el tipo de navegación cuando la página ya empezó a cargar, así que CCoR borra y recarga una vez más. No detecta <code>location.reload()</code> hecho por la propia página y no actúa si la página se cargó con POST.</p>
+    <button id="suggest-block" class="link-btn">Añadir sitios sensibles sugeridos a la lista bloqueada</button>
+  </details>
+
+  <p class="error-text" id="error"></p>
+  <p class="note-text" id="note"></p>
   <div id="toast" class="toast"></div>
 
-  <footer class="footer">
-    <span>v1.0.0</span>
-    <span class="dev-tag">DEV MODE</span>
-  </footer>
+  <script src="ccor-core.js"></script>
+  <script src="popup.js"></script>
 </body>
-<script src="popup.js"></script>
 </html>
